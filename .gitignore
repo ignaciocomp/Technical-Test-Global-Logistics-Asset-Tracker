@@ -1,0 +1,37 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+*.exe
+.vs/
+*.DotSettings.user
+
+## Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+
+## Native
+native/**/*.o
+native/**/*.so
+native/**/*.dylib
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## IDE
+.idea/
+*.swp
+*.swo
+
+## Docker
+docker/data/
+
+## Misc
+*.log

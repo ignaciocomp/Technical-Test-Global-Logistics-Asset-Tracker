@@ -1,0 +1,6 @@
+openapi: 3.0.3
+info:
+  title: Global Logistics Asset Tracker API
+  version: 0.1.0
+  description: API for managing logistics assets and telemetry data.
+paths: {}
