@@ -53,7 +53,7 @@ public class AssetsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{id:guid}/telemetry")]
-    public async Task<ActionResult<TelemetryLogDto>> AddTelemetry(Guid id, [FromBody] CreateTelemetryRequest request)
+    public async Task<ActionResult<SensorStatusDto>> AddTelemetry(Guid id, [FromBody] CreateTelemetryRequest request)
     {
         var result = await mediator.Send(new AddTelemetryCommand(id, request));
         return Created($"/api/assets/{id}/telemetry", result);

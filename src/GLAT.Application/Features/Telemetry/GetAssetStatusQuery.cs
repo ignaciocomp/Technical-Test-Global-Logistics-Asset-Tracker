@@ -23,14 +23,7 @@ public class GetAssetStatusHandler(
 
         var s = latest.Sensors;
         var score = healthScoreService.CalculateHealthScore(s.Temperature, s.Pressure, s.Vibration);
-
-        var alerts = new List<string>();
-        if (s.Temperature > 80) alerts.Add("High temperature");
-        if (s.Temperature < -20) alerts.Add("Low temperature");
-        if (s.Pressure > 150) alerts.Add("High pressure");
-        if (s.Pressure < 20) alerts.Add("Low pressure");
-        if (s.Vibration > 70) alerts.Add("Excessive vibration");
-        if (score < 50) alerts.Add("Critical health score");
+        var alerts = AlertEvaluator.Evaluate(s.Temperature, s.Pressure, s.Vibration, score);
 
         return new SensorStatusDto(request.AssetId, score, alerts, DateTimeOffset.UtcNow);
     }

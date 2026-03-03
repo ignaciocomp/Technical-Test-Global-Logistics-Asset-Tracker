@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/.git
+**/.vs
+**/.idea
+frontend/
+native/health-score/*.so
+native/health-score/test_main
+*.md
+!README.md
+.editorconfig
+.gitignore

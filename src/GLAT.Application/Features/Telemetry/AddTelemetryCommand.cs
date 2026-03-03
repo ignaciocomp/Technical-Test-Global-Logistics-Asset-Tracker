@@ -1,20 +1,20 @@
 using GLAT.Application.Common.Exceptions;
 using GLAT.Application.DTOs;
 using GLAT.Application.Interfaces;
-using GLAT.Application.Mapping;
 using GLAT.Domain.Entities;
 using GLAT.Domain.Interfaces;
 using MediatR;
 
 namespace GLAT.Application.Features.Telemetry;
 
-public record AddTelemetryCommand(Guid AssetId, CreateTelemetryRequest Body) : IRequest<TelemetryLogDto>;
+public record AddTelemetryCommand(Guid AssetId, CreateTelemetryRequest Body) : IRequest<SensorStatusDto>;
 
 public class AddTelemetryHandler(
     IAssetRepository assetRepo,
-    ITelemetryRepository telemetryRepo) : IRequestHandler<AddTelemetryCommand, TelemetryLogDto>
+    ITelemetryRepository telemetryRepo,
+    IHealthScoreService healthScoreService) : IRequestHandler<AddTelemetryCommand, SensorStatusDto>
 {
-    public async Task<TelemetryLogDto> Handle(AddTelemetryCommand request, CancellationToken ct)
+    public async Task<SensorStatusDto> Handle(AddTelemetryCommand request, CancellationToken ct)
     {
         if (!await assetRepo.ExistsAsync(request.AssetId))
             throw new NotFoundException("Asset", request.AssetId);
@@ -24,6 +24,10 @@ public class AddTelemetryHandler(
         var log = TelemetryLog.Create(request.AssetId, readings);
 
         await telemetryRepo.AddAsync(log);
-        return log.ToDto();
+
+        var score = healthScoreService.CalculateHealthScore(s.Temperature, s.Pressure, s.Vibration);
+        var alerts = AlertEvaluator.Evaluate(s.Temperature, s.Pressure, s.Vibration, score);
+
+        return new SensorStatusDto(request.AssetId, score, alerts, DateTimeOffset.UtcNow);
     }
 }
