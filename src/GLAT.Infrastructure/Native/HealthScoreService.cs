@@ -27,13 +27,18 @@ public class HealthScoreService(ILogger<HealthScoreService> logger) : IHealthSco
     {
         var score = 100.0;
 
-        var tempDelta = Math.Abs(temperature - 40);
-        score -= tempDelta * 0.5;
+        if (temperature < 15)
+            score -= (15 - temperature) * 1.5;
+        else if (temperature > 35)
+            score -= (temperature - 35) * 1.5;
 
-        var pressureDelta = Math.Abs(pressure - 100);
-        score -= pressureDelta * 0.3;
+        if (pressure < 50)
+            score -= (50 - pressure) * 1.0;
+        else if (pressure > 120)
+            score -= (pressure - 120) * 1.0;
 
-        score -= vibration * 0.4;
+        if (vibration > 30)
+            score -= (vibration - 30) * 2.0;
 
         return Math.Clamp(score, 0, 100);
     }
