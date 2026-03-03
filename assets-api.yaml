@@ -1,6 +1,439 @@
 openapi: 3.0.3
 info:
   title: Global Logistics Asset Tracker API
-  version: 0.1.0
-  description: API for managing logistics assets and telemetry data.
-paths: {}
+  version: 1.0.0
+  description: REST API for managing logistics assets, telemetry ingestion, and health monitoring.
+  contact:
+    name: GLAT Team
+
+servers:
+  - url: http://localhost:5000
+    description: Local development
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/assets:
+    get:
+      tags: [Assets]
+      summary: List all assets
+      operationId: listAssets
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: type
+          in: query
+          schema:
+            $ref: "#/components/schemas/AssetType"
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/AssetStatus"
+      responses:
+        "200":
+          description: Paginated list of assets
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Asset"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    post:
+      tags: [Assets]
+      summary: Create a new asset
+      operationId: createAsset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAssetRequest"
+      responses:
+        "201":
+          description: Asset created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/assets/{id}:
+    parameters:
+      - $ref: "#/components/parameters/AssetId"
+
+    get:
+      tags: [Assets]
+      summary: Get asset by ID
+      operationId: getAsset
+      responses:
+        "200":
+          description: Asset details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    put:
+      tags: [Assets]
+      summary: Update an existing asset
+      operationId: updateAsset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAssetRequest"
+      responses:
+        "200":
+          description: Updated asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    delete:
+      tags: [Assets]
+      summary: Delete an asset
+      operationId: deleteAsset
+      responses:
+        "204":
+          description: Asset deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/assets/{id}/telemetry:
+    parameters:
+      - $ref: "#/components/parameters/AssetId"
+
+    post:
+      tags: [Telemetry]
+      summary: Ingest a telemetry reading
+      operationId: createTelemetryLog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTelemetryRequest"
+      responses:
+        "201":
+          description: Telemetry log recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TelemetryLog"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    get:
+      tags: [Telemetry]
+      summary: Get telemetry history for an asset
+      operationId: listTelemetryLogs
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Paginated telemetry history
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PaginatedResponse"
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TelemetryLog"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/assets/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/AssetId"
+
+    get:
+      tags: [Telemetry]
+      summary: Get current sensor status and health score
+      operationId: getSensorStatus
+      responses:
+        "200":
+          description: Current sensor status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SensorStatus"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    AssetId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    AssetType:
+      type: string
+      enum: [container, vehicle, machinery]
+
+    AssetStatus:
+      type: string
+      enum: [active, maintenance, inactive]
+
+    Location:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+
+    Asset:
+      type: object
+      required: [id, name, type, status, location, lastUpdated]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 200
+        type:
+          $ref: "#/components/schemas/AssetType"
+        status:
+          $ref: "#/components/schemas/AssetStatus"
+        location:
+          $ref: "#/components/schemas/Location"
+        lastUpdated:
+          type: string
+          format: date-time
+
+    CreateAssetRequest:
+      type: object
+      required: [name, type, location]
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        type:
+          $ref: "#/components/schemas/AssetType"
+        status:
+          $ref: "#/components/schemas/AssetStatus"
+          default: active
+        location:
+          $ref: "#/components/schemas/Location"
+
+    UpdateAssetRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        status:
+          $ref: "#/components/schemas/AssetStatus"
+        location:
+          $ref: "#/components/schemas/Location"
+
+    Sensors:
+      type: object
+      required: [temperature, pressure, vibration]
+      properties:
+        temperature:
+          type: number
+          format: double
+        pressure:
+          type: number
+          format: double
+        vibration:
+          type: number
+          format: double
+
+    TelemetryLog:
+      type: object
+      required: [id, assetId, timestamp, sensors]
+      properties:
+        id:
+          type: string
+          format: uuid
+        assetId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        sensors:
+          $ref: "#/components/schemas/Sensors"
+
+    CreateTelemetryRequest:
+      type: object
+      required: [sensors]
+      properties:
+        sensors:
+          $ref: "#/components/schemas/Sensors"
+
+    SensorStatus:
+      type: object
+      required: [assetId, healthScore, alerts, calculatedAt]
+      properties:
+        assetId:
+          type: string
+          format: uuid
+        healthScore:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+        alerts:
+          type: array
+          items:
+            type: string
+        calculatedAt:
+          type: string
+          format: date-time
+
+    PaginatedResponse:
+      type: object
+      required: [page, pageSize, totalCount, totalPages]
+      properties:
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalCount:
+          type: integer
+        totalPages:
+          type: integer
+
+    ErrorResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Missing or invalid JWT token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
