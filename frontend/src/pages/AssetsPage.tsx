@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAssetStore } from '../store/useAssetStore';
 import type { Asset } from '../api/types';
 import AssetFormModal from '../components/AssetFormModal';
@@ -14,6 +15,7 @@ export default function AssetsPage() {
   const pageSize = 20;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
+  const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Asset | null>(null);
 
@@ -65,19 +67,20 @@ export default function AssetsPage() {
               <th className="px-6 py-3">Status</th>
               <th className="px-6 py-3">Location</th>
               <th className="px-6 py-3">Last Updated</th>
+              <th className="px-6 py-3 w-10"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {isLoading && (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
                   Loading...
                 </td>
               </tr>
             )}
             {!isLoading && assets.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
                   No assets found. Create your first one.
                 </td>
               </tr>
@@ -86,7 +89,7 @@ export default function AssetsPage() {
               assets.map((asset) => (
                 <tr
                   key={asset.id}
-                  onClick={() => openEdit(asset)}
+                  onClick={() => navigate(`/assets/${asset.id}`)}
                   className="hover:bg-gray-50 cursor-pointer transition-colors"
                 >
                   <td className="px-6 py-4 font-medium text-gray-800">{asset.name}</td>
@@ -107,6 +110,20 @@ export default function AssetsPage() {
                   </td>
                   <td className="px-6 py-4 text-gray-500">
                     {asset.lastUpdated ? new Date(asset.lastUpdated).toLocaleString() : '—'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEdit(asset);
+                      }}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Edit asset"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
                   </td>
                 </tr>
               ))}
