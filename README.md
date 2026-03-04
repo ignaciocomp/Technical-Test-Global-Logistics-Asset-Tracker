@@ -23,8 +23,8 @@ Full-stack platform for managing and monitoring logistics assets (containers, ve
 ## Quick Start
 
 ```bash
-git clone <repo-url>
-cd <repo-folder>
+git clone https://github.com/ignaciocomp/Technical-Test-Global-Logistics-Asset-Tracker.git
+cd Technical-Test-Global-Logistics-Asset-Tracker
 docker-compose up --build
 ```
 
