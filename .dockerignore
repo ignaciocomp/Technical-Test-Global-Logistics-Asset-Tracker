@@ -4,7 +4,8 @@
 **/.git
 **/.vs
 **/.idea
-frontend/
+frontend/node_modules/
+frontend/dist/
 native/health-score/*.so
 native/health-score/test_main
 *.md
