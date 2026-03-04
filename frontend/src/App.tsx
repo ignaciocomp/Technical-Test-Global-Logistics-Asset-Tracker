@@ -4,6 +4,7 @@ import { useAuthStore } from './store/useAuthStore';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import AssetsPage from './pages/AssetsPage';
+import AssetDetailPage from './pages/AssetDetailPage';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -26,6 +27,7 @@ function App() {
           }
         >
           <Route path="/assets" element={<AssetsPage />} />
+          <Route path="/assets/:id" element={<AssetDetailPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/assets" replace />} />
